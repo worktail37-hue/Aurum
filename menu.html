@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Menu Management - Aurum Table</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="dashboard.html">Dashboard</a>
+    <a href="menu.html">Menu</a>
+    <a href="new-order.html">New Order</a>
+    <a href="orders.html">Orders</a>
+    <a href="guest.html" target="_blank">Guest View</a>
+  </nav>
+
+  <div class="container">
+    <div class="card">
+      <h2>Add New Dish</h2>
+      <div class="row">
+        <input type="text" id="dish-name" placeholder="Dish Name" style="flex:2; margin:0 10px 0 0;">
+        <input type="number" id="dish-price" placeholder="Price (₹)" style="flex:1; margin:0 10px 0 0;">
+        <button id="btn-add">Add Dish</button>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Menu Items</h2>
+      <table>
+        <thead><tr><th>Name</th><th>Price</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody id="menu-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script src="data.js"></script>
+  <script>
+    function renderMenu() {
+      var menu = loadMenu();
+      var tbody = document.getElementById("menu-body");
+      tbody.innerHTML = "";
+      for (var i = 0; i < menu.length; i++) {
+        var dish = menu[i];
+        var tr = document.createElement("tr");
+        var statusBtn = dish.available ? "Hide" : "Unhide";
+        var statusText = dish.available ? "Available" : "Hidden";
+        tr.innerHTML =
+          "<td>" + dish.name + "</td><td>" + formatMoney(dish.price) + "</td><td>" + statusText + "</td>" +
+          "<td><button onclick='toggleDish(" + dish.id + ")'>" + statusBtn + "</button> " +
+          "<button class='delete' onclick='deleteDish(" + dish.id + ")'>Delete</button></td>";
+        tbody.appendChild(tr);
+      }
+    }
+    document.getElementById("btn-add").addEventListener("click", function() {
+      var name = document.getElementById("dish-name").value;
+      var price = document.getElementById("dish-price").value;
+      if (name == "" || price == "") { alert("Please fill in all fields."); return; }
+      var menu = loadMenu();
+      menu.push({ id: Date.now(), name: name, price: Number(price), available: true });
+      saveMenu(menu);
+      document.getElementById("dish-name").value = "";
+      document.getElementById("dish-price").value = "";
+      renderMenu();
+    });
+    function toggleDish(id) {
+      var menu = loadMenu();
+      for (var i = 0; i < menu.length; i++) {
+        if (menu[i].id == id) { menu[i].available = !menu[i].available; }
+      }
+      saveMenu(menu);
+      renderMenu();
+    }
+    function deleteDish(id) {
+      if (confirm("Are you sure you want to delete this dish?") == false) return;
+      var menu = loadMenu();
+      var newMenu = [];
+      for (var i = 0; i < menu.length; i++) {
+        if (menu[i].id != id) { newMenu.push(menu[i]); }
+      }
+      saveMenu(newMenu);
+      renderMenu();
+    }
+    renderMenu();
+  </script>
+</body>
+</html>

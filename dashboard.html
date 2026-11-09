@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - Aurum Table</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="dashboard.html">Dashboard</a>
+    <a href="menu.html">Menu</a>
+    <a href="new-order.html">New Order</a>
+    <a href="orders.html">Orders</a>
+    <a href="guest.html" target="_blank">Guest View</a>
+  </nav>
+
+  <div class="container">
+    <h1>Welcome to Aurum Table</h1>
+    <p style="color: #a0a0a0; margin-bottom: 20px;">Staff Order Management Portal</p>
+    <div class="grid-stats">
+      <div class="stat-box"><h3>Total Orders</h3><p id="stat-total">0</p></div>
+      <div class="stat-box"><h3>Pending</h3><p id="stat-pending" style="color:#e0a800">0</p></div>
+      <div class="stat-box"><h3>Preparing</h3><p id="stat-preparing" style="color:#3b82f6">0</p></div>
+      <div class="stat-box"><h3>Ready</h3><p id="stat-ready" style="color:#22c55e">0</p></div>
+      <div class="stat-box"><h3>Served</h3><p id="stat-served" style="color:#9ca3af">0</p></div>
+      <div class="stat-box"><h3>Revenue</h3><p id="stat-revenue">₹0</p></div>
+    </div>
+    <div class="card">
+      <h2>Recent Orders</h2>
+      <table>
+        <thead><tr><th>Order ID</th><th>Guest</th><th>Table</th><th>Total</th><th>Status</th></tr></thead>
+        <tbody id="recent-orders"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script src="data.js"></script>
+  <script>
+    var orders = loadOrders();
+    var pending = 0, preparing = 0, ready = 0, served = 0, revenue = 0;
+    for (var i = 0; i < orders.length; i++) {
+      if (orders[i].status == "Pending") pending++;
+      if (orders[i].status == "Preparing") preparing++;
+      if (orders[i].status == "Ready") ready++;
+      if (orders[i].status == "Served") { served++; revenue = revenue + orders[i].total; }
+    }
+    document.getElementById("stat-total").textContent = orders.length;
+    document.getElementById("stat-pending").textContent = pending;
+    document.getElementById("stat-preparing").textContent = preparing;
+    document.getElementById("stat-ready").textContent = ready;
+    document.getElementById("stat-served").textContent = served;
+    document.getElementById("stat-revenue").textContent = formatMoney(revenue);
+
+    var tbody = document.getElementById("recent-orders");
+    var count = 0;
+    for (var j = orders.length - 1; j >= 0; j--) {
+      if (count >= 5) break;
+      var o = orders[j];
+      var tr = document.createElement("tr");
+      tr.innerHTML = "<td>#" + o.id + "</td><td>" + o.guest + "</td><td>" + o.table + "</td><td>" + formatMoney(o.total) + "</td>" +
+        "<td><span class='badge " + getBadgeClass(o.status) + "'>" + o.status + "</span></td>";
+      tbody.appendChild(tr);
+      count++;
+    }
+  </script>
+</body>
+</html>

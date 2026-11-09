@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Order Tracking - Aurum Table</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="dashboard.html">Dashboard</a>
+    <a href="menu.html">Menu</a>
+    <a href="new-order.html">New Order</a>
+    <a href="orders.html">Orders</a>
+    <a href="guest.html" target="_blank">Guest View</a>
+  </nav>
+
+  <div class="container">
+    <div class="card">
+      <h2>Order Tracking</h2>
+      <input type="text" id="search-box" placeholder="Search by ID, Guest or Table...">
+      <table>
+        <thead><tr><th>ID</th><th>Guest</th><th>Table</th><th>Total</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody id="orders-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script src="data.js"></script>
+  <script>
+    function renderOrders() {
+      var orders = loadOrders();
+      var query = document.getElementById("search-box").value.toLowerCase();
+      var tbody = document.getElementById("orders-body");
+      tbody.innerHTML = "";
+      for (var i = orders.length - 1; i >= 0; i--) {
+        var o = orders[i];
+        var match = false;
+        if (String(o.id).indexOf(query) > -1) match = true;
+        if (o.guest.toLowerCase().indexOf(query) > -1) match = true;
+        if (String(o.table).toLowerCase().indexOf(query) > -1) match = true;
+        if (query != "" && match == false) continue;
+        var tr = document.createElement("tr");
+        var actionHTML = "";
+        if (o.status == "Pending") {
+          actionHTML = "<button onclick='advanceOrder(" + o.id + ")'>Start Preparing</button> <button class='delete' onclick='cancelOrder(" + o.id + ")'>Cancel</button>";
+        } else if (o.status == "Preparing") {
+          actionHTML = "<button onclick='advanceOrder(" + o.id + ")'>Mark Ready</button> <button class='delete' onclick='cancelOrder(" + o.id + ")'>Cancel</button>";
+        } else if (o.status == "Ready") {
+          actionHTML = "<button onclick='advanceOrder(" + o.id + ")'>Mark Served</button> <button class='delete' onclick='cancelOrder(" + o.id + ")'>Cancel</button>";
+        } else {
+          actionHTML = "<span style='color:#9ca3af'>No actions</span>";
+        }
+        tr.innerHTML = "<td>#" + o.id + "</td><td>" + o.guest + "</td><td>" + o.table + "</td><td>" + formatMoney(o.total) + "</td>" +
+          "<td><span class='badge " + getBadgeClass(o.status) + "'>" + o.status + "</span></td><td>" + actionHTML + "</td>";
+        tbody.appendChild(tr);
+      }
+    }
+    function advanceOrder(id) {
+      var orders = loadOrders();
+      for (var i = 0; i < orders.length; i++) {
+        if (orders[i].id == id) {
+          if (orders[i].status == "Pending") orders[i].status = "Preparing";
+          else if (orders[i].status == "Preparing") orders[i].status = "Ready";
+          else if (orders[i].status == "Ready") orders[i].status = "Served";
+        }
+      }
+      saveOrders(orders);
+      renderOrders();
+    }
+    function cancelOrder(id) {
+      if (confirm("Are you sure you want to cancel this order?") == false) return;
+      var orders = loadOrders();
+      for (var i = 0; i < orders.length; i++) {
+        if (orders[i].id == id) { orders[i].status = "Cancelled"; }
+      }
+      saveOrders(orders);
+      renderOrders();
+    }
+    document.getElementById("search-box").addEventListener("input", renderOrders);
+    renderOrders();
+  </script>
+</body>
+</html>

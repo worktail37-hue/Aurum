@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Guest View - Aurum Table</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div style="text-align: center; padding: 20px;">
+    <h1 style="color: #c9a227;">Aurum Table</h1>
+    <p style="color: #a0a0a0;">Guest Order Tracker</p>
+  </div>
+  <div class="container">
+    <div class="card">
+      <h2>Live Orders</h2>
+      <p style="color: #a0a0a0; margin-bottom: 15px;">Enter your Table Number to find your order.</p>
+      <input type="text" id="table-search" placeholder="Table Number...">
+      <table>
+        <thead><tr><th>Order ID</th><th>Table</th><th>Status</th></tr></thead>
+        <tbody id="guest-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script src="data.js"></script>
+  <script>
+    function renderGuestView() {
+      var orders = loadOrders();
+      var query = document.getElementById("table-search").value.toLowerCase();
+      var tbody = document.getElementById("guest-body");
+      tbody.innerHTML = "";
+      for (var i = orders.length - 1; i >= 0; i--) {
+        var o = orders[i];
+        if (o.status == "Cancelled") continue;
+        if (query != "" && String(o.table).toLowerCase().indexOf(query) == -1) continue;
+        var tr = document.createElement("tr");
+        tr.innerHTML = "<td>#" + o.id + "</td><td>" + o.table + "</td><td><span class='badge " + getBadgeClass(o.status) + "'>" + o.status + "</span></td>";
+        tbody.appendChild(tr);
+      }
+    }
+    document.getElementById("table-search").addEventListener("input", renderGuestView);
+    renderGuestView();
+  </script>
+</body>
+</html>

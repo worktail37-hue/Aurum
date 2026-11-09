@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>New Order - Aurum Table</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="dashboard.html">Dashboard</a>
+    <a href="menu.html">Menu</a>
+    <a href="new-order.html">New Order</a>
+    <a href="orders.html">Orders</a>
+    <a href="guest.html" target="_blank">Guest View</a>
+  </nav>
+
+  <div class="container">
+    <div class="card">
+      <h2>Guest Details</h2>
+      <input type="text" id="guest-name" placeholder="Guest Name">
+      <input type="text" id="table-number" placeholder="Table Number">
+    </div>
+    <div class="card">
+      <h2>Select Dishes</h2>
+      <div id="dish-list"></div>
+    </div>
+    <div class="card" style="border: 2px solid #c9a227;">
+      <h2>Order Summary</h2>
+      <div id="summary-list" style="margin-bottom: 15px; color: #a0a0a0;"></div>
+      <h3 style="color: #c9a227;">Total: <span id="order-total">₹0</span></h3>
+      <br>
+      <button id="btn-place" style="width: 100%; font-size: 18px; padding: 15px;">Place Order</button>
+    </div>
+  </div>
+
+  <script src="data.js"></script>
+  <script>
+    var cart = {};
+    function renderDishes() {
+      var menu = loadMenu();
+      var box = document.getElementById("dish-list");
+      box.innerHTML = "";
+      for (var i = 0; i < menu.length; i++) {
+        var dish = menu[i];
+        if (dish.available == false) continue;
+        var row = document.createElement("div");
+        row.className = "row";
+        row.innerHTML = "<span>" + dish.name + " (" + formatMoney(dish.price) + ")</span>" +
+          "<input type='number' min='0' value='0' data-id='" + dish.id + "' style='width: 80px; margin:0;'>";
+        box.appendChild(row);
+      }
+      var inputs = box.querySelectorAll("input");
+      for (var j = 0; j < inputs.length; j++) {
+        inputs[j].addEventListener("input", function(e) {
+          var id = e.target.getAttribute("data-id");
+          var qty = Number(e.target.value);
+          if (qty < 0) qty = 0;
+          cart[id] = qty;
+          updateTotal();
+        });
+      }
+    }
+    function updateTotal() {
+      var menu = loadMenu();
+      var total = 0;
+      var summary = document.getElementById("summary-list");
+      summary.innerHTML = "";
+      for (var i = 0; i < menu.length; i++) {
+        var dish = menu[i];
+        var qty = cart[dish.id] || 0;
+        if (qty > 0) {
+          total = total + (dish.price * qty);
+          var p = document.createElement("p");
+          p.textContent = dish.name + " x " + qty;
+          summary.appendChild(p);
+        }
+      }
+      document.getElementById("order-total").textContent = formatMoney(total);
+    }
+    document.getElementById("btn-place").addEventListener("click", function() {
+      var guest = document.getElementById("guest-name").value;
+      var table = document.getElementById("table-number").value;
+      if (guest == "" || table == "") { alert("Please enter Guest Name and Table Number."); return; }
+      var menu = loadMenu();
+      var items = [];
+      var total = 0;
+      for (var i = 0; i < menu.length; i++) {
+        var dish = menu[i];
+        var qty = cart[dish.id] || 0;
+        if (qty > 0) {
+          items.push({ name: dish.name, qty: qty, price: dish.price });
+          total = total + (dish.price * qty);
+        }
+      }
+      if (items.length == 0) { alert("Please add at least one dish."); return; }
+      var orders = loadOrders();
+      var newOrder = {
+        id: getNextOrderId(orders), guest: guest, table: table,
+        items: items, total: total, status: "Pending", time: new Date().toLocaleTimeString()
+      };
+      orders.push(newOrder);
+      saveOrders(orders);
+      alert("Order #" + newOrder.id + " placed successfully!");
+      window.location.href = "orders.html";
+    });
+    renderDishes();
+    updateTotal();
+  </script>
+</body>
+</html>
